@@ -84,3 +84,92 @@ services:
           - '/mnt/Storage6TB/appsmount/netbootxyz/config:/config'
           - '/mnt/Storage6TB/appsmount/netbootxyz/assets:/assets'
         image: ghcr.io/linuxserver/netbootxyz
+
+
+### NOT MIGRATED TO NEW DOCKER HOST YET
+version: '3.3'
+services:
+    idrac:
+        container_name: idrac
+        ports:
+          - '5800:5800'
+          - '5900:5900'
+        restart: unless-stopped
+        environment:
+          - IDRAC_HOST=192.168.1.253
+          - IDRAC_USER=username
+          - IDRAC_PASSWORD=password
+          - USER_ID=0
+          - GROUP_ID=0
+
+        volumes:
+          - '/dockerssd/idrac/app:/app'
+          - '/dockerssd/idrac/vmedia:/vmedia'
+          - '/dockerssd/idrac/screenshots:/screenshots'
+        image: domistyle/idrac6
+
+    netbootxyz:
+        container_name: netbootxyz
+        ports:
+          - '3004:3004/tcp'
+          - '69:69/udp'
+          - '8080:80/tcp'
+        restart: unless-stopped
+        volumes:
+          - '/dockerssd/xyz/config:/config'
+          - '/dockerssd/xyz/assets:/assets'
+        image: ghcr.io/linuxserver/netbootxyz
+
+    bitwardenrs:
+        container_name: bitwardenrs
+        ports:
+          - '80:80/tcp'
+        restart: unless-stopped
+        environment:
+          - SIGNUPS_ALLOWED=false
+          - ADMIN_TOKEN=mysecrettoken
+          - YUBICO_CLIENT_ID=123456
+          - YUBICO_SECRET_KEY=yubicosecret
+        volumes:
+          - '/dockerssd/bitwarden:/data'
+        image: bitwardenrs/server:latest
+
+    protonmail-bridge:
+        container_name: protonmail-bridge
+        volumes:
+            - '/dockerssd/protonmailbridge:/root'
+        ports:
+            - '1025:25/tcp'
+            - '1143:143/tcp'
+        restart: unless-stopped
+        image: 'shenxn/protonmail-bridge:latest
+
+
+    ipmitomqtt:
+      container_name: ipmitomqtt
+      image: ipmi2mqtt:latest
+      environment:
+        - IPMIHOST=192.168.1.253
+        - IPMIUSER=user
+        - IPMIPASS=password
+        - IPMIVARIABLE1=lanplus
+        - IPMIVARIABLE2=sdr
+        - IPMIGREP=Level
+        - IPMICUT=20-22
+        - MOSQUITTOHOST=192.168.1.40
+        - MOSQUITTOUSER=user
+        - MOSQUITTOPASS=password
+        - MOSQUITTOTOPIC=idracpower
+        - IPMIFILE=/tmp/power
+
+    octoprint:
+      container_name: octoprint
+      image: octoprint/octoprint
+      restart: unless-stopped
+      ports:
+        - '5000:80'
+      devices:
+        - '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:/dev/ttyACM0'
+      volumes:
+       - '/dockerssd/octoprint:/octoprint/octoprint'
+       - '/dockerssd/octoprint/plugins:/octoprint/plugins
