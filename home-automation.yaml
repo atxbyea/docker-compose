@@ -13,3 +13,80 @@ services:
       network_mode: host
       restart: unless-stopped
       image: snowzach/doods:latest
+
+
+
+
+##### STILL ON OLD DOCKER HOST, NOT MIGRATED
+
+version: '3.3'
+services:
+    influxdb:
+        container_name: influxdb
+        ports:
+          - '8086:8086'
+        volumes:
+          - '/dockerssd/influxdb-new:/var/lib/influxdb'
+        environment:
+          - INFLUXDB_DB=home_assistant
+          - INFLUXDB_HTTP_AUTH_ENABLED=true
+          - INFLUXDB_ADMIN_USER=username
+          - INFLUXDB_ADMIN_PASSWORD=password
+        restart: unless-stopped
+        image: influxdb
+
+    doods:
+      container_name: doods
+      ports:
+        - '8011:8080'
+      restart: unless-stopped
+      volumes:
+        - '/dockerssd/doods/example.yaml:/opt/doods/config.yaml'
+        - '/dockerssd/doods/models:/opt/doods/models'
+      image: snowzach/doods:latest
+
+    homeassistant:
+      container_name: home-assistant
+      image: homeassistant/home-assistant:2021.1.5
+      volumes:
+        - '/dockerssd/hass:/config'
+      environment:
+        - TZ=Europe/Oslo
+      restart: unless-stopped
+      network_mode: host
+
+
+    esphome:
+        container_name: esphome
+        environment:
+          - ESPHOME_DASHBOARD_USE_PING="true"
+        ports:
+          - '6052:6052'
+          - '6053:6053'
+        restart: unless-stopped
+        volumes:
+          - '/dockerssd/esphome:/config'
+        image: esphome/esphome
+
+    mosquitto:
+        container_name: shino
+        ports:
+          - '1883:1883'
+          - '9001:9001'
+        volumes:
+          - /dockerssd/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+          - /dockerssd/mosquitto/mosquitto.passwd:/mosquitto/config/mosquitto.passwd
+          - /dockerssd/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
+          - /dockerssd/mosquitto/data:/mosquitto/data
+        restart: unless-stopped
+        image: eclipse-mosquitto
+
+
+    tasmoadmin:
+       container_name: tasmoadmin
+       ports: 
+         - '8881:80'
+       volumes:
+         - /dockerssd/tasmoadmin:/data
+       restart: unless-stopped
+       image: raymondmm/tasmoadmin
