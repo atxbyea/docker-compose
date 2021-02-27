@@ -1,0 +1,113 @@
+version: '3.3'
+services:
+    sonarr:
+        container_name: sonarr
+        environment:
+            - TZ=Europe/Oslo
+            - PUID=0
+            - PGID=0
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/sonarr:/config'
+            - '/mnt/Storage/tv-series:/mnt/tvseries'
+            - '/mnt/Storage/anime:/mnt/anime'
+            - '/mnt/Storage6TB/downloads:/downloads'
+        restart: unless-stopped
+        image: ghcr.io/linuxserver/sonarr:preview
+        
+    radarr:        
+        container_name: radarr
+        environment:
+            - TZ=Europe/Oslo
+            - PUID=0
+            - PGID=0
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/radarr:/config'
+            - '/mnt/Storage/movies:/mnt/movies'
+            - '/mnt/Storage6TB/downloads:/downloads'
+        restart: unless-stopped
+        image: ghcr.io/linuxserver/radarr
+        
+    lidarr:        
+        container_name: lidarr
+        environment:
+            - TZ=Europe/Oslo
+            - PUID=0
+            - PGID=0
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/lidarr:/config'
+            - '/mnt/Storage/musikk:/mnt/musikk'
+            - '/mnt/Storage6TB/downloads:/downloads'
+        restart: unless-stopped
+        image: ghcr.io/linuxserver/lidarr
+        
+    nzbget:        
+        container_name: nzbget
+        environment:
+            - TZ=Europe/Oslo
+            - PUID=0
+            - PGID=0
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/nzbget:/config'
+            - '/mnt/Storage/movies:/mnt/movies'
+            - '/mnt/Storage/anime:/mnt/anime'
+            - '/mnt/Storage/tv-series:/mnt/tvseries'
+            - '/mnt/Storage/musikk:/mnt/musikk'
+        restart: unless-stopped
+        image: ghcr.io/linuxserver/nzbget
+        
+    qbittorrent:        
+        container_name: qbittorrent
+        environment:
+            - TZ=Europe/Oslo
+            - PUID=0
+            - PGID=0
+            - WEBUI_PORT=8282
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/qbittorrent:/config'
+            - '/mnt/Storage/movies:/mnt/movies'
+            - '/mnt/Storage/anime:/mnt/anime'
+            - '/mnt/Storage/tv-series:/mnt/tvseries'
+            - '/mnt/Storage/musikk:/mnt/musikk'
+            - '/mnt/Storage/eirikz:/mnt/eirikz'
+            - '/mnt/Storage6TB/downloads:/downloads'
+        restart: unless-stopped
+        image: ghcr.io/linuxserver/qbittorrent
+
+    jackett:
+      container_name: jackett
+      environment:
+        - PUID=0
+        - PGID=0
+        - TZ=Europe/Oslo
+      network_mode: host
+      volumes:
+        - '/mnt/Storage6TB/appsmount/jackett:/config'
+        - '/mnt/Storage6TB/downloads:/downloads'
+      restart: unless-stopped
+      image: ghcr.io/linuxserver/jackett
+
+
+    plex:
+      container_name: plex
+      network_mode: host
+      environment:
+        - PUID=0
+        - PGID=0
+        - VERSION=public
+        - ADVERTISE_IP=http://192.168.1.11:32400/
+      volumes:
+        - '/mnt/Storage6TB/appsmount/plex:/config'
+        - '/mnt/Storage/anime:/mnt/anime'
+        - '/mnt/Storage/musikk:/mnt/music'
+        - '/mnt/Storage/movies:/mnt/movies'
+        - '/mnt/Storage/tv-series:/mnt/tv-series2'
+#        - '/mnt/gdriveplex:/mnt/gdrive'
+        - '/mnt/Storage/klipp:/mnt/Klipp'
+        - '/mnt/Storage6TB/transcode:/mnt/transcode'
+      restart: unless-stopped
+      image: ghcr.io/linuxserver/plex

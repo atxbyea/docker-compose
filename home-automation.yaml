@@ -1,0 +1,15 @@
+version: '3.3'
+services:
+    grafana:
+        container_name: grafana
+        network_mode: host
+        restart: unless-stopped
+        volumes:
+          - '/mnt/Storage6TB/appsmount/grafana:/var/lib/grafana'
+        image: grafana/grafana
+
+    doods:
+      container_name: doods
+      network_mode: host
+      restart: unless-stopped
+      image: snowzach/doods:latest

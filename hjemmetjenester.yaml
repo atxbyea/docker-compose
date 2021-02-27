@@ -1,0 +1,86 @@
+version: '3.3'
+services:
+
+    youtransfer:
+        container_name: youtransfer
+        network_mode: host
+        volumes:
+          - '/mnt/Storage6TB/appsmount/youtransfer:/opt/youtransfer/config'
+          - '/mnt/Storage6TB/appsmount/youtransfer:/opt/youtransfer/uploads'
+        restart: unless-stopped
+        image: remie/youtransfer:stable
+
+    gaara:
+        container_name: gaara
+        restart: unless-stopped
+        volumes:
+          - '/mnt/Storage6TB/appsmount/gaara/www:/app'
+          - '/mnt/Storage6TB/appsmount/gaara/etc:/opt/docker/etc'
+        image: webdevops/php-apache:latest
+
+
+    motion:
+        container_name: motion
+        network_mode: host
+        environment:
+          - TZ=Europe/Oslo
+        volumes: 
+          - '/mnt/Storage6TB/appsmount/motion/config:/etc/motioneye'
+          - '/mnt/Storage6TB/appsmount/motion/storage:/var/lib/motioneye'
+          - '/etc/localtime:/etc/localtime:ro'
+        restart: unless-stopped
+        image: ccrisan/motioneye:master-amd64
+
+    madara:
+        container_name: madara
+        environment:
+            - TZ=Europe/Oslo
+            - URL=${MADARAURL}
+            - SUBDOMAINS=${MADARASUBDOMAINS}
+            - VALIDATION=${MADARAVALIDATION}
+            - DNSPLUGIN=${MADARADNSPLUGIN}
+            - EMAIL=${MADARAEMAIL}
+            - DHLEVEL=${MADARADHLEVEL}
+            - STAGING=${MADARASTAGING}
+        network_mode: host
+        volumes:
+            - '/mnt/Storage6TB/appsmount/madara:/config'
+        restart: unless-stopped
+        image: linuxserver/swag
+
+
+    naruto:
+        container_name: naruto
+        network_mode: host
+        restart: unless-stopped
+        environment:
+          - MYSQL_ROOT_PASSWORD=${NARUTOMYSQLPASSWORD}
+        volumes:
+          - '/mnt/Storage6TB/appsmount/naruto:/var/lib/mysql'
+          - '/mnt/Storage6TB/appsmount/naruto/config/my.cnf:/etc/mysql/my.cnf'
+        image: mariadb:latest
+
+    nextcloud:
+        container_name: nextcloud
+        network_mode: host
+        restart: unless-stopped
+        environment:
+          - PUID=911
+          - PGID=998
+          - TZ=Europe/Oslo
+        volumes:
+          - '/mnt/Storage6TB/appsmount/nextcloud/data:/data'
+          - '/mnt/Storage6TB/appsmount/nextcloud/config:/config'
+          - '/mnt/Storage/Felles-Owncloud:/mnt/felles'
+          - '/mnt/Storage/eirikz:/mnt/eirikz'
+          - '/mnt/Storage/weronica:/mnt/weronica'
+        image: ghcr.io/linuxserver/nextcloud
+
+    netbootxyz:
+        container_name: netbootxyz
+        network_mode: host
+        restart: unless-stopped
+        volumes:
+          - '/mnt/Storage6TB/appsmount/netbootxyz/config:/config'
+          - '/mnt/Storage6TB/appsmount/netbootxyz/assets:/assets'
+        image: ghcr.io/linuxserver/netbootxyz
