@@ -6,87 +6,92 @@ services:
         restart: unless-stopped
         volumes:
           - '/mnt/Storage6TB/appsmount/grafana:/var/lib/grafana'
+        environment: 
+          - 'GF_SERVER_HTTP_PORT=9700'
         image: grafana/grafana
-
-    doods:
-      container_name: doods
-      network_mode: host
-      restart: unless-stopped
-      image: snowzach/doods:latest
-
-
-
-
-##### STILL ON OLD DOCKER HOST, NOT MIGRATED
-
-version: '3.3'
-services:
-    influxdb:
-        container_name: influxdb
-        ports:
-          - '8086:8086'
-        volumes:
-          - '/dockerssd/influxdb-new:/var/lib/influxdb'
-        environment:
-          - INFLUXDB_DB=home_assistant
-          - INFLUXDB_HTTP_AUTH_ENABLED=true
-          - INFLUXDB_ADMIN_USER=username
-          - INFLUXDB_ADMIN_PASSWORD=password
-        restart: unless-stopped
-        image: influxdb
-
-    doods:
-      container_name: doods
-      ports:
-        - '8011:8080'
-      restart: unless-stopped
-      volumes:
-        - '/dockerssd/doods/example.yaml:/opt/doods/config.yaml'
-        - '/dockerssd/doods/models:/opt/doods/models'
-      image: snowzach/doods:latest
-
-    homeassistant:
-      container_name: home-assistant
-      image: homeassistant/home-assistant:2021.1.5
-      volumes:
-        - '/dockerssd/hass:/config'
-      environment:
-        - TZ=Europe/Oslo
-      restart: unless-stopped
-      network_mode: host
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
 
 
     esphome:
-        container_name: esphome
+        container_name: kiba
         environment:
           - ESPHOME_DASHBOARD_USE_PING="true"
-        ports:
-          - '6052:6052'
-          - '6053:6053'
+        network_mode: host
         restart: unless-stopped
         volumes:
-          - '/dockerssd/esphome:/config'
+          - '/mnt/Storage6TB/appsmount/esphome:/config'
         image: esphome/esphome
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
 
     mosquitto:
         container_name: shino
-        ports:
-          - '1883:1883'
-          - '9001:9001'
+        network_mode: host
         volumes:
-          - /dockerssd/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-          - /dockerssd/mosquitto/mosquitto.passwd:/mosquitto/config/mosquitto.passwd
-          - /dockerssd/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
-          - /dockerssd/mosquitto/data:/mosquitto/data
+          - /mnt/Storage6TB/appsmount/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+          - /mnt/Storage6TB/appsmount/mosquitto/mosquitto.passwd:/mosquitto/config/mosquitto.passwd
+          - /mnt/Storage6TB/appsmount/mosquitto/log/mosquitto.log:/mosquitto/log/mosquitto.log
+          - /mnt/Storage6TB/appsmount/mosquitto/data:/mosquitto/data
+          - /mnt/Storage6TB/appsmount/mosquitto/mosquitto.pid:/var/run/mosquitto.pid
         restart: unless-stopped
         image: eclipse-mosquitto
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
 
 
     tasmoadmin:
-       container_name: tasmoadmin
-       ports: 
-         - '8881:80'
+       container_name: choji
+       network_mode: host
        volumes:
-         - /dockerssd/tasmoadmin:/data
+         - /mnt/Storage6TB/appsmount/tasmoadmin:/data
        restart: unless-stopped
        image: raymondmm/tasmoadmin
+       logging:
+         driver: "gelf"
+         options:
+           gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
+
+    influxdb:
+        container_name: tenten
+        network_mode: host
+        volumes:
+          - '/mnt/Storage6TB/appsmount/influxdb:/var/lib/influxdb'
+        environment:
+          - INFLUXDB_DB=${INFLUXDBDBNAME}
+          - INFLUXDB_HTTP_AUTH_ENABLED=true
+          - INFLUXDB_ADMIN_USER=${INFLUXDBADMINUSER}
+          - INFLUXDB_ADMIN_PASSWORD=$INFLUXDBADMINPASSWORD}
+        restart: unless-stopped
+        image: influxdb
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
+
+    neji:
+      container_name: neji
+      volumes:
+          - '/mnt/Storage6TB/appsmount/neji:/app/data'
+      network_mode: host
+      environment:
+           - TZ=Europe/Oslo
+      restart: unless-stopped
+      image: 'koenkk/zigbee2mqtt:latest-dev'
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
