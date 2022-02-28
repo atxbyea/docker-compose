@@ -13,7 +13,12 @@ services:
             - '/mnt/Storage/anime:/mnt/anime'
             - '/mnt/Storage6TB/downloads:/downloads'
         restart: unless-stopped
-        image: ghcr.io/linuxserver/sonarr:preview
+        image: ghcr.io/linuxserver/sonarr:latest
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
         
     radarr:        
         container_name: radarr
@@ -28,6 +33,11 @@ services:
             - '/mnt/Storage6TB/downloads:/downloads'
         restart: unless-stopped
         image: ghcr.io/linuxserver/radarr
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
         
     lidarr:        
         container_name: lidarr
@@ -42,6 +52,10 @@ services:
             - '/mnt/Storage6TB/downloads:/downloads'
         restart: unless-stopped
         image: ghcr.io/linuxserver/lidarr
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
         
     nzbget:        
         container_name: nzbget
@@ -56,8 +70,14 @@ services:
             - '/mnt/Storage/anime:/mnt/anime'
             - '/mnt/Storage/tv-series:/mnt/tvseries'
             - '/mnt/Storage/musikk:/mnt/musikk'
+            - '/mnt/Storage6TB/appsmount/mylar/comics:/comics'
+            - '/mnt/Storage6TB/appsmount/nzbget/scripts:/scripts'
         restart: unless-stopped
         image: ghcr.io/linuxserver/nzbget
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
         
     qbittorrent:        
         container_name: qbittorrent
@@ -77,6 +97,67 @@ services:
             - '/mnt/Storage6TB/downloads:/downloads'
         restart: unless-stopped
         image: ghcr.io/linuxserver/qbittorrent
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+    mylar3:
+      image: ghcr.io/linuxserver/mylar3
+      container_name: mylar3
+      network_mode: host
+      environment:
+        - PUID=0
+        - PGID=0
+      volumes:
+        - /mnt/Storage6TB/appsmount/mylar/config:/config
+        - /mnt/Storage6TB/appsmount/mylar/comics:/comics
+        - /mnt/Storage6TB/downloads:/downloads
+      restart: unless-stopped
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+    calibre:
+      image: ghcr.io/linuxserver/calibre
+      container_name: calibre
+      network_mode: host
+      environment:
+        - PUID=0
+        - PGID=0
+        - TZ=Europe/Oslo
+        - PASSWORD=${CALIBREPASSWORD}
+      volumes:
+        - /mnt/Storage6TB/appsmount/calibre:/config
+        - /tmp:/tmp
+        - /mnt/Storage6TB/appsmount/mylar/comics:/comics
+      restart: unless-stopped
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+    calibre-web:
+      image: ghcr.io/linuxserver/calibre-web
+      container_name: calibre-web
+      network_mode: host
+      environment:
+        - PUID=0
+        - PGID=0
+        - TZ=Europe/Oslo
+        - DOCKER_MODS=linuxserver/calibre-web:calibre
+        - OAUTHLIB_RELAX_TOKEN_SCOPE=1
+      volumes:
+        - /mnt/Storage6TB/appsmount/calibre-web:/config
+        - /mnt/Storage6TB/appsmount/mylar/comics:/books
+        - /mnt/Storage6TB/appsmount/calibre/'Calibre Library':/calibre
+      restart: unless-stopped
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
 
     jackett:
       container_name: jackett
@@ -90,6 +171,10 @@ services:
         - '/mnt/Storage6TB/downloads:/downloads'
       restart: unless-stopped
       image: ghcr.io/linuxserver/jackett
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
 
 
     plex:
@@ -98,7 +183,7 @@ services:
       environment:
         - PUID=0
         - PGID=0
-        - VERSION=public
+        - VERSION=latest
         - ADVERTISE_IP=http://192.168.1.11:32400/
       volumes:
         - '/mnt/Storage6TB/appsmount/plex:/config'
@@ -106,8 +191,14 @@ services:
         - '/mnt/Storage/musikk:/mnt/music'
         - '/mnt/Storage/movies:/mnt/movies'
         - '/mnt/Storage/tv-series:/mnt/tv-series2'
-#        - '/mnt/gdriveplex:/mnt/gdrive'
+        - '/mnt/workspace/tvseries:/mnt/gdrive'
         - '/mnt/Storage/klipp:/mnt/Klipp'
         - '/mnt/Storage6TB/transcode:/mnt/transcode'
+        - '/mnt/workspace/tvseries:/mnt/tv-seriesgdrive'
       restart: unless-stopped
       image: ghcr.io/linuxserver/plex
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
