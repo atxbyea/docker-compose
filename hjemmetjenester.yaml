@@ -1,35 +1,47 @@
 version: '3.3'
 services:
+#    gaara:
+#        container_name: gaara
+#        restart: unless-stopped
+#        network_mode: host
+#        volumes:
+#          - '/mnt/Storage6TB/appsmount/gaara/www:/app'
+#          - '/mnt/Storage6TB/appsmount/gaara/etc:/opt/docker/etc'
+#          - '/mnt/Storage6TB/appsmount/gaara/ports.conf:/etc/apache2/ports.conf'
+#        image: webdevops/php-apache:latest
 
-    youtransfer:
-        container_name: youtransfer
-        network_mode: host
-        volumes:
-          - '/mnt/Storage6TB/appsmount/youtransfer:/opt/youtransfer/config'
-          - '/mnt/Storage6TB/appsmount/youtransfer:/opt/youtransfer/uploads'
-        restart: unless-stopped
-        image: remie/youtransfer:stable
-
-    gaara:
-        container_name: gaara
-        restart: unless-stopped
-        volumes:
-          - '/mnt/Storage6TB/appsmount/gaara/www:/app'
-          - '/mnt/Storage6TB/appsmount/gaara/etc:/opt/docker/etc'
-        image: webdevops/php-apache:latest
+#    ferus:
+#        container_name: ferus
+#        restart: unless-stopped
+#        network_mode: host
+#        volumes:
+#          - '/mnt/Storage6TB/appsmount/ferus/www:/app'
+#          - '/mnt/Storage6TB/appsmount/ferus/etc:/opt/docker/etc'
+#          - '/mnt/Storage6TB/appsmount/ferus/ports.conf:/etc/apache2/ports.conf'
+#        image: webdevops/php-apache:latest
 
 
-    motion:
-        container_name: motion
-        network_mode: host
-        environment:
-          - TZ=Europe/Oslo
-        volumes: 
-          - '/mnt/Storage6TB/appsmount/motion/config:/etc/motioneye'
-          - '/mnt/Storage6TB/appsmount/motion/storage:/var/lib/motioneye'
-          - '/etc/localtime:/etc/localtime:ro'
-        restart: unless-stopped
-        image: ccrisan/motioneye:master-amd64
+    wiki:
+      container_name: willwiki
+      image: requarks/wiki:2
+      environment:
+        DB_TYPE: mariadb
+        DB_HOST: mirai.eirikzlab.local
+        DB_PORT: 13306
+        DB_USER: ${WILLWIKIDBUSER}
+        DB_PASS: ${WILLWIKIDBPASS}
+        DB_NAME: ${WILLWIKIDBNAME}
+      restart: unless-stopped
+#      ports:
+#        - "3588:3000"
+      network_mode: host
+      volumes:
+        - '/mnt/Storage6TB/appsmount/willwiki/config.yml:/wiki/config.yml'
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
 
     madara:
         container_name: madara
@@ -42,11 +54,28 @@ services:
             - EMAIL=${MADARAEMAIL}
             - DHLEVEL=${MADARADHLEVEL}
             - STAGING=${MADARASTAGING}
+            - DOCKER_MODS=linuxserver/mods:universal-stdout-logs
+            - LOGS_TO_STDOUT=/config/log/nginx/access.log|/config/log/nginx/error.log
         network_mode: host
         volumes:
             - '/mnt/Storage6TB/appsmount/madara:/config'
         restart: unless-stopped
         image: linuxserver/swag
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12401"
+
+    authelia:
+      image: authelia/authelia:4.21.0
+      container_name: authelia
+      environment:
+        - TZ=Europe/Oslo
+      volumes:
+        - /mnt/Storage6TB/appsmount/authelia:/config
+      restart: unless-stopped
+      network_mode: host
+
 
 
     naruto:
@@ -58,7 +87,13 @@ services:
         volumes:
           - '/mnt/Storage6TB/appsmount/naruto:/var/lib/mysql'
           - '/mnt/Storage6TB/appsmount/naruto/config/my.cnf:/etc/mysql/my.cnf'
-        image: mariadb:latest
+        image: mariadb:10.5
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
 
     nextcloud:
         container_name: nextcloud
@@ -75,6 +110,12 @@ services:
           - '/mnt/Storage/eirikz:/mnt/eirikz'
           - '/mnt/Storage/weronica:/mnt/weronica'
         image: ghcr.io/linuxserver/nextcloud
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
 
     netbootxyz:
         container_name: netbootxyz
@@ -84,92 +125,78 @@ services:
           - '/mnt/Storage6TB/appsmount/netbootxyz/config:/config'
           - '/mnt/Storage6TB/appsmount/netbootxyz/assets:/assets'
         image: ghcr.io/linuxserver/netbootxyz
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
 
 
-### NOT MIGRATED TO NEW DOCKER HOST YET
-version: '3.3'
-services:
-    idrac:
-        container_name: idrac
-        ports:
-          - '5800:5800'
-          - '5900:5900'
-        restart: unless-stopped
-        environment:
-          - IDRAC_HOST=192.168.1.253
-          - IDRAC_USER=username
-          - IDRAC_PASSWORD=password
-          - USER_ID=0
-          - GROUP_ID=0
-
-        volumes:
-          - '/dockerssd/idrac/app:/app'
-          - '/dockerssd/idrac/vmedia:/vmedia'
-          - '/dockerssd/idrac/screenshots:/screenshots'
-        image: domistyle/idrac6
-
-    netbootxyz:
-        container_name: netbootxyz
-        ports:
-          - '3004:3004/tcp'
-          - '69:69/udp'
-          - '8080:80/tcp'
-        restart: unless-stopped
-        volumes:
-          - '/dockerssd/xyz/config:/config'
-          - '/dockerssd/xyz/assets:/assets'
-        image: ghcr.io/linuxserver/netbootxyz
-
-    bitwardenrs:
-        container_name: bitwardenrs
-        ports:
-          - '80:80/tcp'
+    vaultwarden:
+        container_name: vaultwarden
+        network_mode: host
         restart: unless-stopped
         environment:
           - SIGNUPS_ALLOWED=false
-          - ADMIN_TOKEN=mysecrettoken
-          - YUBICO_CLIENT_ID=123456
-          - YUBICO_SECRET_KEY=yubicosecret
+          - ADMIN_TOKEN=${VAULTWARDENADMINTOKEN}
+          - YUBICO_CLIENT_ID=${VAULTWARDENYUBICOCLIENTID}
+          - YUBICO_SECRET_KEY=${VAULTWARDENYUBICOSECRETKEY}
+          - ROCKET_PORT=9843
         volumes:
-          - '/dockerssd/bitwarden:/data'
-        image: bitwardenrs/server:latest
-
-    protonmail-bridge:
-        container_name: protonmail-bridge
-        volumes:
-            - '/dockerssd/protonmailbridge:/root'
-        ports:
-            - '1025:25/tcp'
-            - '1143:143/tcp'
-        restart: unless-stopped
-        image: 'shenxn/protonmail-bridge:latest
+          - '/mnt/Storage6TB/appsmount/vaultwarden:/data'
+        image: vaultwarden/server:latest
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://mirai.eirikzlab.local:12201"
 
 
-    ipmitomqtt:
-      container_name: ipmitomqtt
-      image: ipmi2mqtt:latest
-      environment:
-        - IPMIHOST=192.168.1.253
-        - IPMIUSER=user
-        - IPMIPASS=password
-        - IPMIVARIABLE1=lanplus
-        - IPMIVARIABLE2=sdr
-        - IPMIGREP=Level
-        - IPMICUT=20-22
-        - MOSQUITTOHOST=192.168.1.40
-        - MOSQUITTOUSER=user
-        - MOSQUITTOPASS=password
-        - MOSQUITTOTOPIC=idracpower
-        - IPMIFILE=/tmp/power
 
-    octoprint:
-      container_name: octoprint
-      image: octoprint/octoprint
-      restart: unless-stopped
+
+    mongodb:
+      container_name: mongodb
       ports:
-        - '5000:80'
-      devices:
-        - '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:/dev/ttyACM0'
+        - 27017:27017
+      image: mongo:4.2
       volumes:
-       - '/dockerssd/octoprint:/octoprint/octoprint'
-       - '/dockerssd/octoprint/plugins:/octoprint/plugins
+         - /mnt/Storage6TB/appsmount/mongodb:/data/db
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
+    elasticsearch:
+      container_name: elastisearch
+      ports:
+        - 9200:9200
+      image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+      environment:
+        - http.host=0.0.0.0
+        - transport.host=localhost
+        - network.host=0.0.0.0
+        - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m"
+      volumes: 
+        - /mnt/Storage6TB/appsmount/elastisearch:/usr/share/elasticsearch/data
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
+
+
+    graylog:
+      container_name: graylog
+      image: graylog/graylog:4.2
+      environment:
+        - GRAYLOG_PASSWORD_SECRET=${GRAYLOGPASSWORDSECRET}
+        - GRAYLOG_ROOT_PASSWORD_SHA2=$GRAYLOGROOTPASSWORDSHA2}
+        - GRAYLOG_HTTP_EXTERNAL_URI=http://192.168.1.11:9500/
+      entrypoint: /usr/bin/tini -- wait-for-it 192.168.1.11:9200 --  /docker-entrypoint.sh
+      restart: always
+      network_mode: host
+      volumes:
+        - /mnt/Storage6TB/appsmount/graylog/journal:/usr/share/graylog/data/journal
+        - /mnt/Storage6TB/appsmount/graylog/config:/usr/share/graylog/data/config
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://mirai.eirikzlab.local:12201"
